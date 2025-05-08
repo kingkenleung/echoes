@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <title>管理端</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Socket.IO v4 client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  </head>
+  <body class="bg-gray-100 p-6">
+
+    <h1 class="text-3xl mb-6">管理端</h1>
+
+    <div class="mb-4">
+      <label class="block text-lg mb-2">選擇組別：</label>
+      <select id="group" class="border p-2 w-full"></select>
+    </div>
+    <div id="singers" class="mb-6 text-xl"></div>
+
+    <div class="space-x-4 mb-6">
+      <button
+        id="reset"
+        class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded"
+      >
+        重置投票
+      </button>
+      <button
+        id="save_reset"
+        class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded"
+      >
+        儲存最終結果並重置
+      </button>
+    </div>
+
+    <h2 class="text-2xl mb-4">裁判啟用狀態</h2>
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <template id="judge-btn-template">
+        <button class="border rounded px-4 py-2"></button>
+      </template>
+    </div>
+
+    <h2 class="text-2xl mb-4">強制刷新</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <button
+        id="refresh_judges"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded"
+      >
+        刷新裁判端
+      </button>
+      <button
+        id="refresh_dashboard"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded"
+      >
+        刷新儀表板
+      </button>
+    </div>
+
+    <script>
+      const socket = io();
+      const sel = document.getElementById("group");
+      const sing = document.getElementById("singers");
+
+      // fetch groups
+      socket.emit("get_groups");
+      socket.on("groups", (gs) => {
+        sel.innerHTML = '<option value="">-- 請選擇 --</option>';
+        gs.forEach((g) => {
+          let o = document.createElement("option");
+          o.value = JSON.stringify(g);
+          o.textContent = `${g.id} – ${g.name}`;
+          sel.append(o);
+        });
+      });
+
+      // select group
+      sel.onchange = (e) => {
+        if (!e.target.value) return;
+        let g = JSON.parse(e.target.value);
+        socket.emit("select_group", g);
+        sel.disabled = true;
+      };
+
+      // display singers when group changes
+      socket.on("group_changed", (g) => {
+        sing.textContent = "歌手：" + g.singers.join("，");
+      });
+
+      // reset
+      document.getElementById("reset").onclick = (_) => {
+        socket.emit("reset_votes");
+      };
+      document.getElementById("save_reset").onclick = (_) => {
+        socket.emit("save_and_reset");
+      };
+
+      // judge toggles
+      let container = document.querySelector(".grid");
+      ["1", "2", "3", "4"].forEach((id) => {
+        let btn = document
+          .getElementById("judge-btn-template")
+          .content.cloneNode(true)
+          .querySelector("button");
+        btn.id = "jb" + id;
+        btn.textContent = "裁判 " + id + " (開)";
+        btn.onclick = () => {
+          socket.emit("toggle_judge", { judge_id: id });
+        };
+        btn.classList.add("bg-green-300", true);
+        container.append(btn);
+      });
+
+      socket.on("judge_toggled", (d) => {
+        let btn = document.getElementById("jb" + d.judge_id);
+        btn.textContent = `裁判 ${d.judge_id} (${d.enabled ? "開" : "關"})`;
+        btn.classList.toggle("bg-gray-300", !d.enabled);
+        btn.classList.toggle("bg-green-300", d.enabled);
+      });
+
+      // on any reset: clear UI
+      socket.on("all_reset", () => {
+        sel.disabled = false;
+        sel.value = "";
+        sing.textContent = "";
+      });
+
+      //   Force refresh
+      document.getElementById("refresh_judges").onclick = () =>
+        socket.emit("force_refresh", { target: "judges" });
+      document.getElementById("refresh_dashboard").onclick = () =>
+        socket.emit("force_refresh", { target: "dashboard" });
+    </script>
+  </body>
+</html>
