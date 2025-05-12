@@ -1,86 +1,104 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8" />
-    <title>裁判 {{judge_id}}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  </head>
-  <body
-    class="bg-black text-white p-0 m-0 h-screen flex flex-col items-center justify-center"
-  >
 
-    <h1 class="text-4xl mb-6">裁判 {{judge_id}}</h1>
-    <div id="group" class="text-2xl mb-4"></div>
-    <div id="singers" class="text-xl mb-8"></div>
-    <div class="flex w-full h-2/3">
-      <button
-        id="yes"
-        class="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-6xl m-1 rounded"
-        disabled
-      >
-        👑
-      </button>
-      <button
-        id="no"
-        class="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-6xl m-1 rounded"
-        disabled
-      >
-        ❌
-      </button>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <title>裁判 {{judge_id}}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
 
-    <script>
-      const socket = io();
-      const jid = "{{judge_id}}";
-      const grpEl = document.getElementById("group");
-      const singEl = document.getElementById("singers");
-      const yes = document.getElementById("yes");
-      const no = document.getElementById("no");
+<body class="bg-black text-white p-0 m-0 h-screen flex flex-col items-center justify-center">
 
-      function clearAll() {
-        grpEl.textContent = "";
-        singEl.textContent = "";
-        yes.disabled = no.disabled = true;
+  <h1 class="text-4xl mb-6">裁判 {{judge_id}}</h1>
+  <div id="group" class="text-2xl mb-4"></div>
+  <div id="singers" class="text-xl mb-8"></div>
+  <div class="flex w-full h-2/3">
+    <button id="yes" class="flex-1 bg-gray-800 text-white text-6xl m-1 rounded" disabled>
+      👑
+    </button>
+    <button id="no" class="flex-1 bg-gray-800 text-white text-6xl m-1 rounded" disabled>
+      ❌
+    </button>
+  </div>
+
+  <script>
+    const socket = io();
+    const jid = "{{judge_id}}";
+    const grpEl = document.getElementById("group");
+    const singEl = document.getElementById("singers");
+    const yes = document.getElementById("yes");
+    const no = document.getElementById("no");
+
+    function clearAll() {
+      grpEl.textContent = "";
+      singEl.textContent = "";
+      yes.disabled = no.disabled = true;
+      yes.classList.remove("bg-green-500");
+      no.classList.remove("bg-green-500");
+    }
+
+    function updateGroup(g) {
+      grpEl.textContent = `Group: ${g.id} – ${g.name}`;
+      singEl.textContent = "Singers: " + g.singers.join("，");
+    }
+
+    function updateEnabled(enabled) {
+      yes.disabled = no.disabled = !enabled;
+      if (enabled) {
         yes.classList.remove("bg-green-500");
         no.classList.remove("bg-green-500");
-      }
-
-      socket.on("judge_toggled", (d) => {
-        if (d.judge_id === jid) {
-          if (d.enabled) {
-            yes.disabled = no.disabled = false;
-            yes.classList.remove("bg-green-500");
-            no.classList.remove("bg-green-500");
-          } else {
-            clearAll();
-          }
-        }
-      });
-
-      socket.on("group_changed", (g) => {
-        grpEl.textContent = `組別：${g.id} – ${g.name}`;
-        singEl.textContent = "歌手：" + g.singers.join("，");
-        yes.disabled = no.disabled = false;
-        yes.classList.remove("bg-green-500");
-        no.classList.remove("bg-green-500");
-      });
-
-      socket.on("all_reset", () => clearAll());
-
-      yes.onclick = () => {
-        socket.emit("vote", { judge_id: jid, vote: "yes" });
+      } else {
         yes.classList.add("bg-green-500");
-        no.classList.remove("bg-green-500");
-      };
-      no.onclick = () => {
-        socket.emit("vote", { judge_id: jid, vote: "no" });
         no.classList.add("bg-green-500");
-        yes.classList.remove("bg-green-500");
-      };
+      }
+    }
 
-      socket.on("do_refresh", () => location.reload());
-      socket.on("do_refresh_dashboard", () => location.reload());
-    </script>
-  </body>
+    socket.on("judge_toggled", (d) => {
+      if (d.judge_id === jid) {
+        if (d.enabled) {
+          updateEnabled(true);
+        } else {
+          updateEnabled(false);
+        }
+      }
+    });
+
+    socket.on("group_changed", (g) => {
+      updateGroup(g);
+      updateEnabled(true);
+    });
+
+    socket.on("all_reset", () => clearAll());
+
+    yes.onclick = () => {
+      socket.emit("vote", { judge_id: jid, vote: "yes" });
+      yes.classList.add("bg-green-500");
+      no.classList.remove("bg-green-500");
+    };
+
+    no.onclick = () => {
+      socket.emit("vote", { judge_id: jid, vote: "no" });
+      no.classList.add("bg-green-500");
+      yes.classList.remove("bg-green-500");
+    };
+
+    socket.on("update_state", (s) => {
+      console.log("Connected to server");
+      // To-do: load current state 
+      console.log(s)
+      if (!s.group) {
+        clearAll();
+        return;
+      }
+      else {
+        updateGroup(s.group);
+        updateEnabled(!!s.group);
+      }
+    });
+
+    socket.on("do_refresh", () => location.reload());
+  </script>
+</body>
+
 </html>

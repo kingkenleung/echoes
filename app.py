@@ -123,5 +123,15 @@ def on_force_refresh(data):
     elif tgt == 'dashboard':
         emit('do_refresh_dashboard', broadcast=True)
 
+@socketio.on("connect")
+def on_connect():
+    print("Client connected")
+    # emit in-memory state as a bundled object to the new client (dashboard / judge)
+    emit("update_state", {
+        'group': current_group if current_group else None,
+        'votes': votes, 
+    })
+
+
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=3002, allow_unsafe_werkzeug=True)
