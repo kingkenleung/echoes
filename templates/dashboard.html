@@ -18,15 +18,64 @@
       background: rgba(0, 0, 0, 0.2);
     }
 
-    /* Water as a simple blue rectangle */
+    /* Parent just controls height + overflow */
     #water {
       position: absolute;
       bottom: 0;
       width: 100%;
       height: 0%;
+      /* adjusted via JavaScript */
       transition: height 0.5s;
+      overflow: hidden;
+      /* clip anything outside the current fill height */
+    }
+
+    /* 1) Solid blue rectangle filling #water */
+    #water .water-body {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      /* exactly matches #water’s dynamic height */
+      background-color: #44f;
+      z-index: 1;
+      /* sits behind the wave mask */
+    }
+
+    /* 2) SVG-masked wave on top */
+    #water .wave-mask {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 50px;
+      /* matches your SVG viewBox height */
       background: #44f;
+      /* same color as the body */
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 500 50" xmlns="http://www.w3.org/2000/svg"><path fill="white" d="M0 30 Q 62.5 0 125 30 T 250 30 T 375 30 T 500 30 V50 H0 Z"/></svg>');
+      -webkit-mask-size: 1000px 100px;
+      -webkit-mask-repeat: repeat-x;
+      -webkit-mask-position: 0 0;
+      mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 500 50" xmlns="http://www.w3.org/2000/svg"><path fill="white" d="M0 30 Q 62.5 0 125 30 T 250 30 T 375 30 T 500 30 V50 H0 Z"/></svg>');
+      mask-size: 1000px 100px;
+      mask-repeat: repeat-x;
+      mask-position: 0 0;
+      animation: waveMove 4s linear infinite;
       z-index: 2;
+      /* above the water-body */
+      pointer-events: none;
+      /* avoid catching clicks */
+    }
+
+
+
+    @keyframes waveMove {
+      0% {
+        mask-position: 0 0;
+      }
+
+      100% {
+        mask-position: 1000px 0;
+      }
     }
 
     /* 泡泡的樣式與動畫 */
@@ -57,8 +106,8 @@
     #duck {
       position: absolute;
       left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
+      transform: translateX(-40%);
+      width: 150px;
       height: auto;
       z-index: 10;
       pointer-events: none;
@@ -73,7 +122,7 @@
       }
 
       50% {
-        transform: translateX(-50%) translateY(-16px);
+        transform: translateX(-50%) translateY(-80px);
       }
 
       100% {
@@ -87,9 +136,14 @@
   <h1 class="text-4xl mb-4">SFYH2025 - Echoes</h1>
   <div id="time" class="text-2xl mb-2"></div>
   <div id="group" class="text-2xl mb-2"></div>
-  <div id="singers" class "text-xl mb-6"></div>
+  <div id="singers" class="text-xl mb-6"></div>
   <div id="tank">
-    <div id="water"></div>
+    <!-- inside #tank -->
+    <div id="water">
+      <div class="water-body"></div>
+      <div class="wave-mask"></div>
+    </div>
+
     <img id="duck" src="https://icons.veryicon.com/png/o/object/daily/yellow-duck-1.png" alt="Duck" />
   </div>
 
