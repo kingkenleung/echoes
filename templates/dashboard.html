@@ -18,7 +18,7 @@
       background: rgba(0, 0, 0, 0.2);
     }
 
-    /* Wave water effect using SVG as background */
+    /* Water as a simple blue rectangle */
     #water {
       position: absolute;
       bottom: 0;
@@ -26,24 +26,7 @@
       height: 0%;
       transition: height 0.5s;
       background: #44f;
-      /* fallback */
       z-index: 2;
-      /* SVG wave as mask */
-      mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 500 50" xmlns="http://www.w3.org/2000/svg"><path fill="white" d="M0 30 Q 62.5 0 125 30 T 250 30 T 375 30 T 500 30 V50 H0 Z"/></svg>');
-      mask-size: 1000px 100px;
-      mask-repeat: repeat-x;
-      mask-position: 0 0;
-      animation: waveMove 4s linear infinite;
-    }
-
-    @keyframes waveMove {
-      0% {
-        mask-position: 0 0;
-      }
-
-      100% {
-        mask-position: 1000px 0;
-      }
     }
 
     /* 泡泡的樣式與動畫 */
@@ -104,7 +87,7 @@
   <h1 class="text-4xl mb-4">SFYH2025 - Echoes</h1>
   <div id="time" class="text-2xl mb-2"></div>
   <div id="group" class="text-2xl mb-2"></div>
-  <div id="singers" class="text-xl mb-6"></div>
+  <div id="singers" class "text-xl mb-6"></div>
   <div id="tank">
     <div id="water"></div>
     <img id="duck" src="https://icons.veryicon.com/png/o/object/daily/yellow-duck-1.png" alt="Duck" />

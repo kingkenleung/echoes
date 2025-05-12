@@ -69,7 +69,8 @@
       updateEnabled(true);
     });
 
-    socket.on("all_reset", () => clearAll());
+    socket.on("reset_votes", () => clearAll());
+    socket.on("save_and_reset", () => clearAll());
 
     yes.onclick = () => {
       socket.emit("vote", { judge_id: jid, vote: "yes" });

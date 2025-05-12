@@ -88,26 +88,30 @@
       // reset
       document.getElementById("reset").onclick = (_) => {
         socket.emit("reset_votes");
+        sel.disabled = false;
+        sel.value = "";
       };
       document.getElementById("save_reset").onclick = (_) => {
         socket.emit("save_and_reset");
+        sel.disabled = false;
+        sel.value = ""; 
       };
 
-      // judge toggles
-      let container = document.querySelector(".grid");
-      ["1", "2", "3", "4"].forEach((id) => {
-        let btn = document
-          .getElementById("judge-btn-template")
-          .content.cloneNode(true)
-          .querySelector("button");
-        btn.id = "jb" + id;
-        btn.textContent = "裁判 " + id + " (開)";
-        btn.onclick = () => {
-          socket.emit("toggle_judge", { judge_id: id });
-        };
-        btn.classList.add("bg-green-300", true);
-        container.append(btn);
-      });
+      // // judge toggles
+      // let container = document.querySelector(".grid");
+      // ["1", "2", "3", "4"].forEach((id) => {
+      //   let btn = document
+      //     .getElementById("judge-btn-template")
+      //     .content.cloneNode(true)
+      //     .querySelector("button");
+      //   btn.id = "jb" + id;
+      //   btn.textContent = "裁判 " + id + " (開)";
+      //   btn.onclick = () => {
+      //     socket.emit("toggle_judge", { judge_id: id });
+      //   };
+      //   btn.classList.add("bg-green-300", true);
+      //   container.append(btn);
+      // });
 
       socket.on("judge_toggled", (d) => {
         let btn = document.getElementById("jb" + d.judge_id);
@@ -117,7 +121,13 @@
       });
 
       // on any reset: clear UI
-      socket.on("all_reset", () => {
+      socket.on("reset_votes", () => {
+        sel.disabled = false;
+        sel.value = "";
+        sing.textContent = "";
+        
+      });
+      socket.on("save_and_reset", () => {
         sel.disabled = false;
         sel.value = "";
         sing.textContent = "";
